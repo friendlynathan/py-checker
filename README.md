@@ -36,7 +36,7 @@ Then open <http://localhost:8000>.
 4. Your live demo will be available at:
 
    ```
-   https://<your-username>.github.io/<repo-name>/
+   https://friendlynathan.github.io/py-checker/
    ```
 
 ## Project structure
