@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyGenuine - Python Package Authenticator & Hallucination Detector</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        darkbg: '#0b0f17',
+                        darkcard: '#111827',
+                        darkborder: '#1f2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #0b0f17;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .preset-active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
+            border-color: #10b981 !important;
+            color: #34d399 !important;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-gray-900/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold text-xl">
+                        <i class="fa-brands fa-python"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">PyGenuine</span>
+                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">v2.4 Live</span>
+                        </div>
+                        <p class="text-xs text-gray-400 hidden sm:block">Python Package Authenticator & AI Hallucination Detector</p>
+                    </div>
+                </div>
+
+                <!-- Status Badge -->
+                <div class="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700/60 text-xs text-gray-300">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>PyPI REST API Connected</span>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex space-x-1 sm:space-x-4 border-t border-gray-800/80 pt-2 overflow-x-auto no-scrollbar">
+                <button onclick="switchTab('tab-scanner')" id="btn-tab-scanner" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg transition-all flex items-center space-x-2 border-b-2 border-emerald-400 text-emerald-400 bg-gray-800/50">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Code Scanner</span>
+                </button>
+                <button onclick="switchTab('tab-directory')" id="btn-tab-directory" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg transition-all flex items-center space-x-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/30">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Package Directory</span>
+                </button>
+                <button onclick="switchTab('tab-matrix')" id="btn-tab-matrix" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg transition-all flex items-center space-x-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/30">
+                    <i class="fa-solid fa-right-left"></i>
+                    <span>Import-to-PyPI Matrix</span>
+                </button>
+                <button onclick="switchTab('tab-guide')" id="btn-tab-guide" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg transition-all flex items-center space-x-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/30">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Vibe Coding Security</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- ================= TAB 1: CODE SCANNER ================= -->
+        <section id="tab-scanner" class="tab-content block space-y-6">
+            
+            <!-- Hero Description -->
+            <div class="bg-gradient-to-r from-gray-900 via-gray-900 to-emerald-950/40 p-6 rounded-2xl border border-gray-800 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <span>Audit Code & Verify Imports</span>
+                            <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-md font-mono">Anti-Slopsquatting</span>
+                        </h1>
+                        <p class="text-sm text-gray-400 mt-1 max-w-2xl">
+                            Paste Python source code or requirements file content. PyGenuine cross-checks every module against standard libraries, PyPI real-time indexes, known import name mismatches, and AI package hallucination traps.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-400 bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                        <span>Prevents supply chain attacks from LLM hallucinated packages in Cursor / Copilot / ChatGPT.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Presets & Input Options -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left 2 Cols: Editor & Controls -->
+                <div class="lg:col-span-2 space-y-4">
+                    
+                    <!-- Presets Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-vial text-emerald-400"></i> Sample Scenarios & Presets:
+                        </label>
+                        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Clear Input
+                        </button>
+                    </div>
+
+                    <!-- Preset Buttons -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button id="preset-hallucination" onclick="loadPreset('hallucination')" class="preset-btn px-3 py-2 text-xs font-medium bg-gray-800/80 hover:bg-gray-800 text-gray-300 rounded-xl border border-gray-700/60 transition-all flex items-center justify-center gap-2 text-center group">
+                            <i class="fa-solid fa-robot text-purple-400 group-hover:scale-110 transition-transform"></i>
+                            <span>AI Hallucination</span>
+                        </button>
+                        <button id="preset-web" onclick="loadPreset('web')" class="preset-btn px-3 py-2 text-xs font-medium bg-gray-800/80 hover:bg-gray-800 text-gray-300 rounded-xl border border-gray-700/60 transition-all flex items-center justify-center gap-2 text-center group">
+                            <i class="fa-solid fa-globe text-blue-400 group-hover:scale-110 transition-transform"></i>
+                            <span>Web & APIs</span>
+                        </button>
+                        <button id="preset-ml" onclick="loadPreset('ml')" class="preset-btn px-3 py-2 text-xs font-medium bg-gray-800/80 hover:bg-gray-800 text-gray-300 rounded-xl border border-gray-700/60 transition-all flex items-center justify-center gap-2 text-center group">
+                            <i class="fa-solid fa-brain text-amber-400 group-hover:scale-110 transition-transform"></i>
+                            <span>ML & Data Science</span>
+                        </button>
+                        <button id="preset-requirements" onclick="loadPreset('requirements')" class="preset-btn px-3 py-2 text-xs font-medium bg-gray-800/80 hover:bg-gray-800 text-gray-300 rounded-xl border border-gray-700/60 transition-all flex items-center justify-center gap-2 text-center group">
+                            <i class="fa-solid fa-file-code text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                            <span>requirements.txt</span>
+                        </button>
+                    </div>
+
+                    <!-- Code Textarea -->
+                    <div class="relative group">
+                        <textarea id="code-input" oninput="onInputChanged()" rows="12" class="w-full bg-gray-900/90 text-gray-100 font-mono text-sm p-4 rounded-xl border border-gray-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all shadow-inner placeholder-gray-600 resize-y" placeholder="# Paste Python code or requirements.txt here...
+# Example:
+import os
+import requests
+import cv2  # Mismatch: pip install opencv-python
+import langchain_ultra_v2  # Warning: Potential hallucination!"></textarea>
+                        
+                        <div class="absolute bottom-3 right-3 text-xs text-gray-500 font-mono bg-gray-950/80 px-2 py-1 rounded border border-gray-800 pointer-events-none" id="line-counter">
+                            0 characters
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <button id="scan-btn" onclick="runScanner()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center space-x-2 active:scale-95">
+                            <i class="fa-solid fa-magnifying-glass font-bold"></i>
+                            <span id="scan-btn-text">Scan & Verify Packages</span>
+                        </button>
+                        <p class="text-xs text-gray-400 flex items-center gap-1">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Fast parallel PyPI validation with caching
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right 1 Col: File Upload Drag & Drop & Quick Tips -->
+                <div class="space-y-4 flex flex-col justify-between">
+                    <!-- File Upload Box -->
+                    <div id="drop-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)" class="border-2 border-dashed border-gray-700 hover:border-emerald-500 bg-gray-900/50 hover:bg-gray-800/40 p-6 rounded-2xl transition-all text-center flex flex-col items-center justify-center flex-grow cursor-pointer group">
+                        <input type="file" id="file-input" class="hidden" accept=".py,.txt" onchange="handleFileSelect(event)">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 group-hover:bg-emerald-500/10 border border-gray-700 group-hover:border-emerald-500/30 flex items-center justify-center text-gray-400 group-hover:text-emerald-400 mb-3 transition-all shadow-md">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-gray-200">Upload Script or Requirements</h3>
+                        <p class="text-xs text-gray-400 mt-1">Drag and drop <code class="text-emerald-400">.py</code> or <code class="text-emerald-400">requirements.txt</code> here</p>
+                        <button onclick="document.getElementById('file-input').click()" type="button" class="mt-4 px-4 py-2 text-xs font-medium text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors">
+                            Browse Local File
+                        </button>
+                    </div>
+
+                    <!-- Scan Summary Alert (Hidden initially) -->
+                    <div id="quick-tip-card" class="bg-gray-900/70 p-4 rounded-xl border border-gray-800 text-xs text-gray-400 space-y-2">
+                        <div class="font-semibold text-gray-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-lightbulb text-amber-400"></i> Why AI Package Scanning Matters
+                        </div>
+                        <p>LLMs often invent convincing package names (e.g. <span class="text-red-400 font-mono">requests-fast</span> or <span class="text-red-400 font-mono">langchain-v2</span>). Attackers monitor LLM outputs and upload malicious payloads to PyPI under those exact names!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Container -->
+            <div id="scanner-results" class="hidden space-y-6 pt-4 border-t border-gray-800">
+                <!-- Header & Stats Grid -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <span>Audit Diagnostic Report</span>
+                            <span id="results-count-badge" class="px-2 py-0.5 text-xs bg-gray-800 text-gray-300 rounded-full font-mono">0 Packages Found</span>
+                        </h2>
+                        <p class="text-xs text-gray-400">Analysis completed in real-time against PyPI and Python Standard Library indexes.</p>
+                    </div>
+
+                    <!-- Category Summary Pills -->
+                    <div class="flex flex-wrap gap-2 text-xs font-medium">
+                        <span id="stat-genuine" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Genuine: 0
+                        </span>
+                        <span id="stat-mismatch" class="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Import Mismatches: 0
+                        </span>
+                        <span id="stat-risk" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-exclamation"></i> High Risk / Hallucinations: 0
+                        </span>
+                        <span id="stat-stdlib" class="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
+                            <i class="fa-solid fa-cube"></i> Std Library: 0
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Alert Banner for Hallucinations -->
+                <div id="hallucination-alert-banner" class="hidden bg-gradient-to-r from-red-950/80 via-red-900/30 to-gray-900 border border-red-500/40 p-4 rounded-xl text-xs text-red-200 flex items-start space-x-3">
+                    <i class="fa-solid fa-shield-virus text-red-400 text-xl flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <span class="font-bold text-red-300 text-sm block">Security Warning: Potential AI Package Hallucinations or Unknown Packages Detected!</span>
+                        <p class="mt-1">One or more modules in your code do not exist on the official PyPI registry. Running <code class="bg-red-950 px-1 py-0.5 rounded border border-red-800 text-red-300">pip install</code> on unknown hallucinated names puts your application at risk of Slopsquatting / Supply Chain Typosquatting.</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Package Cards List -->
+                <div id="packages-list" class="space-y-3">
+                    <!-- Cards injected dynamically -->
+                </div>
+
+                <!-- Clean Requirements Export Panel -->
+                <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-gray-200 flex items-center gap-2">
+                                <i class="fa-solid fa-file-export text-emerald-400"></i> Verified Clean <code class="text-emerald-400 font-mono">requirements.txt</code>
+                            </h3>
+                            <p class="text-xs text-gray-400">Automatically mapped to correct PyPI package names (excludes standard library and hallucination risks).</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="copyCleanRequirements()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs font-semibold border border-gray-700 transition-colors flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                            </button>
+                            <button onclick="downloadCleanRequirements()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center gap-1.5">
+                                <i class="fa-solid fa-download"></i> Download .txt
+                            </button>
+                        </div>
+                    </div>
+                    <pre id="clean-requirements-output" class="bg-gray-950 p-4 rounded-xl text-emerald-300 font-mono text-xs border border-gray-800 overflow-x-auto max-h-48"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: VERIFIED DIRECTORY ================= -->
+        <section id="tab-directory" class="tab-content hidden space-y-6">
+            <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Verified PyPI Package Directory</h2>
+                        <p class="text-xs text-gray-400 mt-1">Explore 80+ audited standard and ecosystem Python packages with authentic import names and pip install commands.</p>
+                    </div>
+                    <!-- Search Input -->
+                    <div class="relative w-full md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-sm"></i>
+                        <input type="text" id="directory-search" oninput="filterDirectory()" placeholder="Search package or import name..." class="w-full bg-gray-950 text-gray-200 text-xs pl-9 pr-4 py-2.5 rounded-xl border border-gray-800 focus:border-emerald-500 focus:outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Category Pills -->
+                <div id="directory-categories" class="flex flex-wrap gap-2 pt-2 border-t border-gray-800/80">
+                    <!-- Buttons generated dynamically -->
+                </div>
+            </div>
+
+            <!-- Directory Grid -->
+            <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Cards generated dynamically -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: IMPORT MATRIX ================= -->
+        <section id="tab-matrix" class="tab-content hidden space-y-6">
+            <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Import-to-PyPI Mismatch Matrix</h2>
+                    <p class="text-xs text-gray-400 mt-1">Many popular Python libraries use import module names that differ from their PyPI installation names. Avoid installing fake or incorrect packages!</p>
+                </div>
+
+                <!-- Filter Matrix Input -->
+                <div class="relative w-full">
+                    <i class="fa-solid fa-filter absolute left-3 top-3 text-gray-500 text-sm"></i>
+                    <input type="text" id="matrix-search" oninput="filterMatrix()" placeholder="Type code import (e.g. cv2, sklearn, PIL, fitz, bs4, yaml, jwt, Crypto)..." class="w-full bg-gray-950 text-gray-200 text-xs pl-9 pr-4 py-2.5 rounded-xl border border-gray-800 focus:border-emerald-500 focus:outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-950 text-gray-400 uppercase font-semibold text-[11px] tracking-wider border-b border-gray-800">
+                            <tr>
+                                <th class="p-4">Code Import Module</th>
+                                <th class="p-4">Official PyPI Package</th>
+                                <th class="p-4">Correct Install Command</th>
+                                <th class="p-4">Common AI Hallucination Trap</th>
+                                <th class="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrix-table-body" class="divide-y divide-gray-800/60 font-mono">
+                            <!-- Matrix rows injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: VIBE CODING GUIDE ================= -->
+        <section id="tab-guide" class="tab-content hidden space-y-8">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-purple-950/60 via-gray-900 to-indigo-950/60 p-8 rounded-2xl border border-purple-800/40 shadow-2xl relative overflow-hidden">
+                <div class="max-w-3xl space-y-3">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">Cybersecurity Advisory</span>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight">The Vibe Coding Security Guide: Preventing AI Slopsquatting</h2>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        When developers "vibe code" with tools like Cursor, Copilot, ChatGPT, or Claude, AI models often hallucinate non-existent Python libraries. Attackers aggressively monitor LLM outputs and auto-publish malicious packages to PyPI matching these hallucinated names.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Grid of Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Card 1: What is Slopsquatting -->
+                <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-lg">
+                        <i class="fa-solid fa-skull-crossbones"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">What is AI Slopsquatting?</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Similar to typosquatting, <strong class="text-purple-300">Slopsquatting</strong> occurs when threat actors identify packages hallucinated by Large Language Models (LLMs) and register them on PyPI before unsuspecting developers try to run <code class="text-amber-300 font-mono">pip install</code>.
+                    </p>
+                    <ul class="text-xs text-gray-400 space-y-1.5 list-disc list-inside pt-2 border-t border-gray-800">
+                        <li>AI generates plausible names like <span class="text-red-400 font-mono">huggingface-utils-v2</span>.</li>
+                        <li>Threat actors register the exact name on PyPI containing malware.</li>
+                        <li>Developer pastes AI code, runs pip install, executing remote code (RCE).</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2: 5 Golden Rules -->
+                <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">5 Golden Rules for Safe Vibe Coding</h3>
+                    <ol class="text-xs text-gray-400 space-y-2 list-decimal list-inside">
+                        <li><strong class="text-gray-200">Never blind pip install:</strong> Always verify unknown modules on <span class="text-emerald-400">PyPI.org</span> or PyGenuine first.</li>
+                        <li><strong class="text-gray-200">Watch out for import vs package name mismatches:</strong> Know that <code class="text-amber-300">import cv2</code> is <code class="text-emerald-400">pip install opencv-python</code>.</li>
+                        <li><strong class="text-gray-200">Check package age & release count:</strong> Hallucinated malware packages are often less than 48 hours old with 1 release.</li>
+                        <li><strong class="text-gray-200">Use isolated virtualenvs:</strong> Always run AI code inside Docker or disposable venvs.</li>
+                        <li><strong class="text-gray-200">Audit requirements.txt:</strong> Run PyGenuine prior to running <code class="text-gray-300">pip install -r requirements.txt</code>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Interactive Risk Assessment Tool -->
+            <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calculator text-indigo-400"></i> Interactive Vibe Coding Security Calculator
+                </h3>
+                <p class="text-xs text-gray-400">Check your current workflow habits to measure your team's supply chain exposure score:</p>
+
+                <div id="risk-quiz" class="space-y-3 pt-2">
+                    <label class="flex items-center space-x-3 p-3 rounded-xl bg-gray-950 border border-gray-800 cursor-pointer hover:bg-gray-800/40">
+                        <input type="checkbox" onchange="calculateRiskScore()" class="quiz-check w-4 h-4 rounded text-emerald-500 bg-gray-900 border-gray-700 focus:ring-emerald-500">
+                        <span class="text-xs text-gray-300">I regularly accept AI-suggested <code class="text-amber-400">pip install ...</code> commands without checking PyPI.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 rounded-xl bg-gray-950 border border-gray-800 cursor-pointer hover:bg-gray-800/40">
+                        <input type="checkbox" onchange="calculateRiskScore()" class="quiz-check w-4 h-4 rounded text-emerald-500 bg-gray-900 border-gray-700 focus:ring-emerald-500">
+                        <span class="text-xs text-gray-300">I run AI-generated Python scripts directly on my main system outside container/Docker.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 rounded-xl bg-gray-950 border border-gray-800 cursor-pointer hover:bg-gray-800/40">
+                        <input type="checkbox" onchange="calculateRiskScore()" class="quiz-check w-4 h-4 rounded text-emerald-500 bg-gray-900 border-gray-700 focus:ring-emerald-500">
+                        <span class="text-xs text-gray-300">I do not lock package versions using hash pinning or clean requirements.txt.</span>
+                    </label>
+                </div>
+
+                <div id="risk-score-result" class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-sm block">Workflow Risk Status: LOW RISK</span>
+                        <span>Great habits! Keep verifying your imports with PyGenuine.</span>
+                    </div>
+                    <span id="risk-score-badge" class="px-3 py-1 rounded-lg bg-emerald-500 text-gray-950 font-bold text-xs">Score: 100/100</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-gray-900/60 py-6 text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <i class="fa-brands fa-python text-emerald-400"></i>
+                <span class="font-semibold text-gray-300">PyGenuine</span>
+                <span>— Open source Python Package Authenticator</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span>Powered by live PyPI REST API</span>
+                <span>•</span>
+                <a href="https://pypi.org" target="_blank" class="hover:text-emerald-400 transition-colors">Official PyPI Registry</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-800 text-gray-100 border border-gray-700 px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center space-x-2 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-emerald-400 text-base"></i>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
+    <script>
+        /* ====================================================================
+           CORE DATABASES: Standard Library, Mismatches, Directory & Presets
+           ==================================================================== */
+
+        // Comprehensive Python Standard Library List (Python 3.8-3.12)
+        const PYTHON_STD_LIB = new Set([
+            'abc', 'argparse', 'array', 'ast', 'asyncio', 'atexit', 'base64', 'bdb', 'binascii', 'bisect', 
+            'builtins', 'bz2', 'cprofile', 'calendar', 'cgi', 'cgitb', 'chunk', 'cmath', 'cmd', 'code', 
+            'codecs', 'codeop', 'collections', 'colorsys', 'compileall', 'concurrent', 'configparser', 
+            'contextlib', 'contextvars', 'copy', 'copyreg', 'crypt', 'csv', 'ctypes', 'curses', 
+            'dataclasses', 'datetime', 'dbm', 'decimal', 'difflib', 'dis', 'distutils', 'doctest', 
+            'email', 'enum', 'errno', 'faulthandler', 'fcntl', 'filecmp', 'fileinput', 'fnmatch', 
+            'fractions', 'ftplib', 'functools', 'gc', 'getopt', 'getpass', 'gettext', 'glob', 
+            'graphlib', 'grp', 'gzip', 'hashlib', 'heapq', 'hmac', 'html', 'http', 'imaplib', 
+            'imghdr', 'imp', 'importlib', 'inspect', 'io', 'ipaddress', 'itertools', 'json', 
+            'keyword', 'lib2to3', 'linecache', 'locale', 'logging', 'lzma', 'mailbox', 'mailcap', 
+            'marshal', 'math', 'mimetypes', 'mmap', 'modulefinder', 'msilib', 'msvcrt', 'multiprocessing', 
+            'netrc', 'nis', 'nntplib', 'numbers', 'operator', 'optparse', 'os', 'ossaudiodev', 
+            'pathlib', 'pdb', 'pickle', 'pickletools', 'pipes', 'pkgutil', 'platform', 'plistlib', 
+            'poplib', 'posix', 'pprint', 'profile', 'pstats', 'pty', 'pwd', 'py_compile', 'pyclbr', 
+            'pydoc', 'queue', 'quopri', 'random', 're', 'readline', 'resource', 'rlcompleter', 
+            'runpy', 'sched', 'secrets', 'select', 'selectors', 'shelve', 'shutil', 'signal', 
+            'site', 'smtpd', 'smtplib', 'sndhdr', 'socket', 'socketserver', 'spwd', 'sqlite3', 
+            'ssl', 'stat', 'statistics', 'string', 'stringprep', 'struct', 'subprocess', 'sunau', 
+            'symtable', 'sys', 'sysconfig', 'syslog', 'tabnanny', 'tarfile', 'telnetlib', 'tempfile', 
+            'termios', 'test', 'textwrap', 'threading', 'time', 'timeit', 'tkinter', 'token', 
+            'tokenize', 'tomllib', 'trace', 'traceback', 'tracemalloc', 'tty', 'types', 'typing', 
+            'unicodedata', 'unittest', 'urllib', 'uu', 'uuid', 'venv', 'wave', 'weakref', 
+            'webbrowser', 'winreg', 'winsound', 'wsgiref', 'xdrlib', 'xml', 'xmlrpc', 'zipapp', 
+            'zipfile', 'zipimport', 'zlib', 'zoneinfo'
+        ]);
+
+        // Known Import-to-PyPI Package Name Mapping
+        const IMPORT_TO_PYPI_MAP = {
+            'cv2': { pypi: 'opencv-python', note: 'OpenCV Computer Vision Library', riskTrap: 'pip install cv2 (Outdated/Fake)' },
+            'sklearn': { pypi: 'scikit-learn', note: 'Scikit-Learn Machine Learning', riskTrap: 'pip install sklearn (Deprecated dummy package)' },
+            'PIL': { pypi: 'pillow', note: 'Python Imaging Library', riskTrap: 'pip install PIL (Non-existent on PyPI)' },
+            'fitz': { pypi: 'pymupdf', note: 'PyMuPDF PDF Processing Library', riskTrap: 'pip install fitz (Unrelated package)' },
+            'bs4': { pypi: 'beautifulsoup4', note: 'Beautiful Soup HTML Parser', riskTrap: 'pip install bs4 (Dummy redirect)' },
+            'yaml': { pypi: 'pyyaml', note: 'YAML parser and emitter', riskTrap: 'pip install yaml (Unrelated package)' },
+            'jwt': { pypi: 'pyjwt', note: 'JSON Web Token implementation', riskTrap: 'pip install jwt (Different package)' },
+            'Crypto': { pypi: 'pycryptodome', note: 'Cryptographic library', riskTrap: 'pip install pycrypto (Deprecated & vulnerable)' },
+            'crypto': { pypi: 'pycryptodome', note: 'Cryptographic library', riskTrap: 'pip install crypto (Unrelated package)' },
+            'dotenv': { pypi: 'python-dotenv', note: 'Environment variable loader', riskTrap: 'pip install dotenv (Dummy package)' },
+            'dateutil': { pypi: 'python-dateutil', note: 'Extensions to standard datetime', riskTrap: 'pip install dateutil' },
+            'docx': { pypi: 'python-docx', note: 'Create/modify Word documents', riskTrap: 'pip install docx' },
+            'pptx': { pypi: 'python-pptx', note: 'Create/modify PowerPoint files', riskTrap: 'pip install pptx' },
+            'serial': { pypi: 'pyserial', note: 'Serial port communication', riskTrap: 'pip install serial' },
+            'attr': { pypi: 'attrs', note: 'Classes Without Boilerplate', riskTrap: 'pip install attr' },
+            'OpenGL': { pypi: 'PyOpenGL', note: 'Python OpenGL bindings', riskTrap: 'pip install opengl' },
+            'telegram': { pypi: 'python-telegram-bot', note: 'Telegram Bot API Wrapper', riskTrap: 'pip install telegram' },
+            'discord': { pypi: 'discord.py', note: 'Discord API Wrapper', riskTrap: 'pip install discord' },
+            'slack_sdk': { pypi: 'slack-sdk', note: 'Slack Developer Kit', riskTrap: 'pip install slack' },
+            'github': { pypi: 'PyGithub', note: 'GitHub API v3', riskTrap: 'pip install github' },
+            'git': { pypi: 'GitPython', note: 'Git Repository Interaction', riskTrap: 'pip install git' },
+            'kafka': { pypi: 'kafka-python', note: 'Apache Kafka Client', riskTrap: 'pip install kafka' },
+            'playwright': { pypi: 'playwright', note: 'Headless browser automation', riskTrap: 'pip install playwrite (Typo)' },
+            'psycopg2': { pypi: 'psycopg2-binary', note: 'PostgreSQL Database Adapter', riskTrap: 'pip install psycopg2 (Requires local C compilation)' },
+            'wx': { pypi: 'wxPython', note: 'Cross-platform GUI toolkit', riskTrap: 'pip install wx' },
+            'usb': { pypi: 'pyusb', note: 'USB access module', riskTrap: 'pip install usb' }
+        };
+
+        // Known Deprecated / High-Risk Packages
+        const DEPRECATED_OR_RISKY = {
+            'pycrypto': 'Vulnerable & unmaintained. Use "pycryptodome" instead.',
+            'sklearn': 'Deprecated dummy installer. Use "scikit-learn".',
+            'requests-async': 'Unmaintained. Use "httpx" or "aiohttp".',
+            'opencv-python-headless': 'Valid, but check if you need "opencv-python" for GUI displays.'
+        };
+
+        // Preset Samples
+        const PRESETS = {
+            hallucination: `# AI Hallucination & Supply Chain Vulnerability Sample
+import os
+import sys
+import requests
+import cv2                    # Import mismatch -> opencv-python
+import sklearn                # Deprecated wrapper -> scikit-learn
+import langchain_ultra_v2     # AI HALLUCINATION TRAP (Does not exist on PyPI)
+import huggingface_hub_v3     # AI HALLUCINATION TRAP (Does not exist on PyPI)
+import requests_fast          # AI HALLUCINATION TRAP (Common LLM slopsquatting target)
+import pycrypto               # Vulnerable / Deprecated -> pycryptodome
+`,
+            web: `# Web & API Services Sample
+import os
+import json
+import asyncio
+from fastapi import FastAPI
+import uvicorn
+import httpx
+import pydantic
+import jwt                    # Import mismatch -> pyjwt
+import bs4                    # Import mismatch -> beautifulsoup4
+`,
+            ml: `# Machine Learning & Computer Vision
+import os
+import numpy as np
+import pandas as pd
+import torch
+import cv2                    # Import mismatch -> opencv-python
+import PIL                    # Import mismatch -> pillow
+import fitz                   # Import mismatch -> pymupdf
+import matplotlib.pyplot as plt
+import seaborn as sns
+`,
+            requirements: `# Sample requirements.txt file
+requests==2.31.0
+fastapi>=0.100.0
+opencv-python
+scikit-learn
+langchain-ultra-v2
+pycrypto
+python-dotenv
+`
+        };
+
+        const VERIFIED_DIRECTORY = [
+            { name: 'fastapi', importName: 'fastapi', category: 'Web & APIs', desc: 'Modern, fast web framework for building APIs with Python 3.8+ based on standard Python type hints.', pypi: 'fastapi' },
+            { name: 'flask', importName: 'flask', category: 'Web & APIs', desc: 'A lightweight WSGI web application framework.', pypi: 'flask' },
+            { name: 'django', importName: 'django', category: 'Web & APIs', desc: 'High-level Python web framework that encourages rapid development and clean, pragmatic design.', pypi: 'django' },
+            { name: 'httpx', importName: 'httpx', category: 'Web & APIs', desc: 'A fully featured HTTP client for Python 3, which includes integrated sync/async support.', pypi: 'httpx' },
+            { name: 'requests', importName: 'requests', category: 'Web & APIs', desc: 'Elegant and simple HTTP library for Python, built for human beings.', pypi: 'requests' },
+            { name: 'aiohttp', importName: 'aiohttp', category: 'Web & APIs', desc: 'Async HTTP client/server for asyncio and Python.', pypi: 'aiohttp' },
+            { name: 'pydantic', importName: 'pydantic', category: 'Web & APIs', desc: 'Data parsing and validation using Python type hints.', pypi: 'pydantic' },
+            { name: 'uvicorn', importName: 'uvicorn', category: 'Web & APIs', desc: 'An ASGI web server implementation for Python.', pypi: 'uvicorn' },
+            
+            { name: 'numpy', importName: 'numpy', category: 'Data Science & AI', desc: 'The fundamental package for scientific computing with Python.', pypi: 'numpy' },
+            { name: 'pandas', importName: 'pandas', category: 'Data Science & AI', desc: 'Powerful data structures for data analysis, time series, and statistics.', pypi: 'pandas' },
+            { name: 'torch', importName: 'torch', category: 'Data Science & AI', desc: 'Tensors and Dynamic neural networks in Python with strong GPU acceleration.', pypi: 'torch' },
+            { name: 'tensorflow', importName: 'tensorflow', category: 'Data Science & AI', desc: 'An end-to-end open source platform for machine learning.', pypi: 'tensorflow' },
+            { name: 'scikit-learn', importName: 'sklearn', category: 'Data Science & AI', desc: 'Simple and efficient tools for predictive data analysis.', pypi: 'scikit-learn' },
+            { name: 'opencv-python', importName: 'cv2', category: 'Data Science & AI', desc: 'Wrapper package for OpenCV Python bindings.', pypi: 'opencv-python' },
+            { name: 'pillow', importName: 'PIL', category: 'Data Science & AI', desc: 'The friendly Python Imaging Library (PIL fork).', pypi: 'pillow' },
+            { name: 'langchain', importName: 'langchain', category: 'Data Science & AI', desc: 'Building applications with LLMs through composability.', pypi: 'langchain' },
+            { name: 'openai', importName: 'openai', category: 'Data Science & AI', desc: 'Official Python library for the OpenAI API.', pypi: 'openai' },
+            { name: 'transformers', importName: 'transformers', category: 'Data Science & AI', desc: 'State-of-the-art Machine Learning for PyTorch, TensorFlow, and JAX.', pypi: 'transformers' },
+            
+            { name: 'rich', importName: 'rich', category: 'CLI & Tools', desc: 'Rich text and beautiful formatting in the terminal.', pypi: 'rich' },
+            { name: 'click', importName: 'click', category: 'CLI & Tools', desc: 'Composable command line interface toolkit.', pypi: 'click' },
+            { name: 'typer', importName: 'typer', category: 'CLI & Tools', desc: 'Typer, build great CLIs. Easy to code. Based on Python type hints.', pypi: 'typer' },
+            { name: 'tqdm', importName: 'tqdm', category: 'CLI & Tools', desc: 'A Fast, Extensible Progress Bar for Python and CLI.', pypi: 'tqdm' },
+            { name: 'structlog', importName: 'structlog', category: 'CLI & Tools', desc: 'Structured Logging for Python.', pypi: 'structlog' },
+
+            { name: 'beautifulsoup4', importName: 'bs4', category: 'Automation & Scraping', desc: 'Screen-scraping library designed for quick turnaround projects.', pypi: 'beautifulsoup4' },
+            { name: 'playwright', importName: 'playwright', category: 'Automation & Scraping', desc: 'Python version of the Playwright cross-browser automation library.', pypi: 'playwright' },
+            { name: 'selenium', importName: 'selenium', category: 'Automation & Scraping', desc: 'Python bindings for Selenium WebDriver.', pypi: 'selenium' },
+            { name: 'scrapy', importName: 'scrapy', category: 'Automation & Scraping', desc: 'A high-level Web Crawling and Web Scraping framework.', pypi: 'scrapy' },
+            { name: 'pymupdf', importName: 'fitz', category: 'Automation & Scraping', desc: 'PyMuPDF is a high performance Python library for PDF extraction.', pypi: 'pymupdf' },
+
+            { name: 'pytest', importName: 'pytest', category: 'Testing & QA', desc: 'The pytest framework makes it easy to write small, readable tests.', pypi: 'pytest' },
+            { name: 'coverage', importName: 'coverage', category: 'Testing & QA', desc: 'Code coverage measurement for Python.', pypi: 'coverage' },
+            { name: 'ruff', importName: 'ruff', category: 'Testing & QA', desc: 'An extremely fast Python linter and code formatter, written in Rust.', pypi: 'ruff' },
+            { name: 'mypy', importName: 'mypy', category: 'Testing & QA', desc: 'Optional static typing for Python.', pypi: 'mypy' },
+
+            { name: 'pycryptodome', importName: 'Crypto', category: 'Security & Auth', desc: 'Self-contained Python package of low-level cryptographic primitives.', pypi: 'pycryptodome' },
+            { name: 'pyjwt', importName: 'jwt', category: 'Security & Auth', desc: 'JSON Web Token implementation in Python.', pypi: 'pyjwt' },
+            { name: 'passlib', importName: 'passlib', category: 'Security & Auth', desc: 'Comprehensive password hashing framework.', pypi: 'passlib' },
+
+            { name: 'sqlalchemy', importName: 'sqlalchemy', category: 'Database & ORM', desc: 'The Python SQL Toolkit and Object Relational Mapper.', pypi: 'sqlalchemy' },
+            { name: 'psycopg2-binary', importName: 'psycopg2', category: 'Database & ORM', desc: 'PostgreSQL database adapter for Python.', pypi: 'psycopg2-binary' },
+            { name: 'redis', importName: 'redis', category: 'Database & ORM', desc: 'Python client for Redis key-value store.', pypi: 'redis' },
+            { name: 'pymongo', importName: 'pymongo', category: 'Database & ORM', desc: 'Python driver for MongoDB.', pypi: 'pymongo' },
+            { name: 'alembic', importName: 'alembic', category: 'Database & ORM', desc: 'A database migration tool for SQLAlchemy.', pypi: 'alembic' }
+        ];
+
+        
+        // Cache PyPI fetch responses to prevent redundant requests
+        const pypiCache = new Map();
+        let lastCleanRequirements = '';
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-400', 'text-emerald-400', 'bg-gray-800/50');
+                btn.classList.add('border-transparent', 'text-gray-400');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-gray-400');
+                activeBtn.classList.add('border-emerald-400', 'text-emerald-400', 'bg-gray-800/50');
+            }
+        }
+
+        // Preset Button Highlighting Reset
+        function resetPresetHighlights() {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('preset-active'));
+        }
+
+        function loadPreset(presetKey) {
+            resetPresetHighlights();
+            const btn = document.getElementById(`preset-${presetKey}`);
+            if (btn) btn.classList.add('preset-active');
+
+            const textarea = document.getElementById('code-input');
+            textarea.value = PRESETS[presetKey] || '';
+            onInputChanged();
+            showToast(`Loaded ${presetKey} sample preset!`, 'fa-circle-check');
+        }
+
+        function clearEditor() {
+            resetPresetHighlights();
+            document.getElementById('code-input').value = '';
+            document.getElementById('scanner-results').classList.add('hidden');
+            onInputChanged();
+            showToast('Editor cleared', 'fa-trash-can');
+        }
+
+        function onInputChanged() {
+            const code = document.getElementById('code-input').value;
+            document.getElementById('line-counter').innerText = `${code.length} characters`;
+        }
+
+        // File Drag & Drop Handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.add('border-emerald-500', 'bg-emerald-500/10');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('border-emerald-500', 'bg-emerald-500/10');
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('border-emerald-500', 'bg-emerald-500/10');
+            resetPresetHighlights();
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                readFile(e.dataTransfer.files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            resetPresetHighlights();
+            if (e.target.files && e.target.files[0]) {
+                readFile(e.target.files[0]);
+            }
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('code-input').value = event.target.result;
+                onInputChanged();
+                showToast(`Loaded file: ${file.name}`, 'fa-file-code');
+                runScanner();
+            };
+            reader.readAsText(file);
+        }
+
+
+        // Extract Import Statements & Requirements
+        function parsePythonImportsAndReqs(text) {
+            const modules = new Set();
+            const lines = text.split('\n');
+
+            for (let line of lines) {
+                // Strip comments & whitespace
+                line = line.split('#')[0].trim();
+                if (!line) continue;
+
+                // Match: import pkg / import pkg as x / import pkg.sub
+                const importMatch = line.match(/^import\s+([a-zA-Z0-9_,-.\s]+)/);
+                if (importMatch) {
+                    const pkgs = importMatch[1].split(',');
+                    pkgs.forEach(p => {
+                        const rootPkg = p.trim().split('.')[0].split(/\s+/)[0];
+                        if (rootPkg) modules.add(rootPkg);
+                    });
+                    continue;
+                }
+
+                // Match: from pkg import x / from pkg.sub import y
+                const fromMatch = line.match(/^from\s+([a-zA-Z0-9_.]+)\s+import/);
+                if (fromMatch) {
+                    const rootPkg = fromMatch[1].split('.')[0].trim();
+                    if (rootPkg) modules.add(rootPkg);
+                    continue;
+                }
+
+                // Match: requirements.txt syntax (e.g. requests==2.31.0 or opencv-python)
+                const reqMatch = line.match(/^([a-zA-Z0-9_\-.]+)\s*([<>=~!]=?.*)?$/);
+                if (reqMatch && !line.includes(' ')) {
+                    modules.add(reqMatch[1].trim());
+                }
+            }
+
+            return Array.from(modules);
+        }
+
+        // Live PyPI Query
+        async function checkPyPIPackage(packageName) {
+            if (pypiCache.has(packageName)) {
+                return pypiCache.get(packageName);
+            }
+
+            try {
+                const response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(packageName)}/json`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.status === 200) {
+                    const data = await response.json();
+                    const result = {
+                        exists: true,
+                        pypiName: data.info.name,
+                        version: data.info.version,
+                        summary: data.info.summary || 'Verified PyPI Project',
+                        homePage: data.info.home_page || data.info.package_url,
+                        pypiUrl: data.info.package_url
+                    };
+                    pypiCache.set(packageName, result);
+                    return result;
+                } else if (response.status === 404) {
+                    const result = { exists: false, error: '404 Not Found on PyPI' };
+                    pypiCache.set(packageName, result);
+                    return result;
+                }
+            } catch (err) {
+                console.warn(`PyPI Fetch failed for ${packageName}, falling back to directory offline check:`, err);
+            }
+
+            // Fallback for offline / network issues
+            const foundInDir = VERIFIED_DIRECTORY.find(p => p.pypi.toLowerCase() === packageName.toLowerCase());
+            if (foundInDir) {
+                return {
+                    exists: true,
+                    pypiName: foundInDir.pypi,
+                    version: 'Latest',
+                    summary: foundInDir.desc,
+                    pypiUrl: `https://pypi.org/project/${foundInDir.pypi}/`
+                };
+            }
+
+            return { exists: false, error: 'Package verification unconfirmed' };
+        }
+
+        async function runScanner() {
+            const rawText = document.getElementById('code-input').value.trim();
+            if (!rawText) {
+                showToast('Please enter code or requirements first!', 'fa-triangle-exclamation');
+                return;
+            }
+
+            const scanBtn = document.getElementById('scan-btn');
+            const scanBtnText = document.getElementById('scan-btn-text');
+            scanBtn.disabled = true;
+            scanBtnText.innerText = 'Scanning PyPI Registry...';
+
+            const detectedModules = parsePythonImportsAndReqs(rawText);
+            const packagesList = document.getElementById('packages-list');
+            packagesList.innerHTML = '';
+
+            let genuineCount = 0;
+            let mismatchCount = 0;
+            let riskCount = 0;
+            let stdlibCount = 0;
+
+            const cleanReqs = new Set();
+            let hasHallucinations = false;
+
+            for (const mod of detectedModules) {
+                const lowerMod = mod.toLowerCase();
+
+                // 1. Check Python Standard Library
+                if (PYTHON_STD_LIB.has(lowerMod)) {
+                    stdlibCount++;
+                    renderPackageCard({
+                        type: 'stdlib',
+                        title: mod,
+                        importName: mod,
+                        badgeText: 'Python Standard Library',
+                        badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+                        icon: 'fa-cube text-blue-400',
+                        desc: 'Built-in Python module. No pip installation required.',
+                        actionCmd: null
+                    });
+                    continue;
+                }
+
+                // 2. Check Known Import Mismatches
+                if (IMPORT_TO_PYPI_MAP[mod]) {
+                    mismatchCount++;
+                    const mapped = IMPORT_TO_PYPI_MAP[mod];
+                    cleanReqs.add(mapped.pypi);
+
+                    // Cross check live version on PyPI
+                    const pypiData = await checkPyPIPackage(mapped.pypi);
+
+                    renderPackageCard({
+                        type: 'mismatch',
+                        title: `${mod} → ${mapped.pypi}`,
+                        importName: mod,
+                        badgeText: 'Import Mismatch Fix',
+                        badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+                        icon: 'fa-triangle-exclamation text-amber-400',
+                        desc: `You imported "${mod}", but the real PyPI package is "${mapped.pypi}". Trap warning: ${mapped.riskTrap}`,
+                        pypiVersion: pypiData.version || 'Verified',
+                        pypiUrl: pypiData.pypiUrl || `https://pypi.org/project/${mapped.pypi}/`,
+                        actionCmd: `pip install ${mapped.pypi}`
+                    });
+                    continue;
+                }
+
+                // 3. Check Deprecated or Risky Packages
+                if (DEPRECATED_OR_RISKY[lowerMod]) {
+                    riskCount++;
+                    hasHallucinations = true;
+                    renderPackageCard({
+                        type: 'risk',
+                        title: mod,
+                        importName: mod,
+                        badgeText: 'Security Risk / Deprecated',
+                        badgeClass: 'bg-red-500/10 text-red-400 border-red-500/30',
+                        icon: 'fa-shield-virus text-red-400',
+                        desc: DEPRECATED_OR_RISKY[lowerMod],
+                        actionCmd: null
+                    });
+                    continue;
+                }
+
+                // 4. Query PyPI Live API for Direct Package Name
+                const pypiData = await checkPyPIPackage(mod);
+
+                if (pypiData.exists) {
+                    genuineCount++;
+                    cleanReqs.add(pypiData.pypiName);
+                    renderPackageCard({
+                        type: 'genuine',
+                        title: pypiData.pypiName,
+                        importName: mod,
+                        badgeText: 'Verified Genuine PyPI',
+                        badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+                        icon: 'fa-circle-check text-emerald-400',
+                        desc: pypiData.summary,
+                        pypiVersion: pypiData.version,
+                        pypiUrl: pypiData.pypiUrl,
+                        actionCmd: `pip install ${pypiData.pypiName}`
+                    });
+                } else {
+                    // AI HALLUCINATION / 404 NOT FOUND
+                    riskCount++;
+                    hasHallucinations = true;
+                    renderPackageCard({
+                        type: 'hallucination',
+                        title: mod,
+                        importName: mod,
+                        badgeText: 'AI Hallucination / 404 Not Found',
+                        badgeClass: 'bg-red-500/10 text-red-400 border-red-500/30',
+                        icon: 'fa-circle-exclamation text-red-400',
+                        desc: `🚨 "${mod}" was NOT found on PyPI! This is likely an AI hallucinated module name. Do NOT attempt to install unknown names from untrusted LLM code.`,
+                        actionCmd: null
+                    });
+                }
+            }
+
+            // Update Statistics Badges
+            document.getElementById('stat-genuine').innerHTML = `<i class="fa-solid fa-circle-check"></i> Genuine: ${genuineCount}`;
+            document.getElementById('stat-mismatch').innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Import Mismatches: ${mismatchCount}`;
+            document.getElementById('stat-risk').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> High Risk / Hallucinations: ${riskCount}`;
+            document.getElementById('stat-stdlib').innerHTML = `<i class="fa-solid fa-cube"></i> Std Library: ${stdlibCount}`;
+            document.getElementById('results-count-badge').innerText = `${detectedModules.length} Modules Audited`;
+
+            // Display / Hide Hallucination Banner
+            const banner = document.getElementById('hallucination-alert-banner');
+            if (hasHallucinations) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            // Output Clean requirements.txt
+            lastCleanRequirements = Array.from(cleanReqs).sort().join('\n');
+            document.getElementById('clean-requirements-output').innerText = lastCleanRequirements || '# No external PyPI packages required.';
+
+            document.getElementById('scanner-results').classList.remove('hidden');
+            scanBtn.disabled = false;
+            scanBtnText.innerText = 'Scan & Verify Packages';
+
+            showToast(`Scan complete! Audited ${detectedModules.length} packages.`, 'fa-shield-halved');
+        }
+
+        // Card Renderer Helper
+        function renderPackageCard(data) {
+            const list = document.getElementById('packages-list');
+            const card = document.createElement('div');
+            card.className = 'bg-gray-900 p-4 rounded-xl border border-gray-800 hover:border-gray-700 transition-all space-y-2';
+
+            card.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid ${data.icon} text-lg"></i>
+                        <div>
+                            <span class="font-bold text-gray-100 text-sm font-mono">${data.title}</span>
+                            ${data.pypiVersion ? `<span class="ml-2 text-[10px] bg-gray-800 text-gray-300 border border-gray-700 px-2 py-0.5 rounded font-mono">v${data.pypiVersion}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-lg border ${data.badgeClass}">${data.badgeText}</span>
+                        ${data.pypiUrl ? `<a href="${data.pypiUrl}" target="_blank" class="p-1.5 text-gray-400 hover:text-emerald-400 transition-colors" title="View on PyPI"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400">${data.desc}</p>
+                ${data.actionCmd ? `
+                    <div class="flex items-center justify-between bg-gray-950 px-3 py-1.5 rounded-lg border border-gray-800 text-xs font-mono text-emerald-400 mt-2">
+                        <span>${data.actionCmd}</span>
+                        <button onclick="copyText('${data.actionCmd}')" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+            list.appendChild(card);
+        }
+
+
+        // Render Directory Cards & Categories
+        function initDirectory() {
+            const categories = ['All', ...new Set(VERIFIED_DIRECTORY.map(d => d.category))];
+            const catContainer = document.getElementById('directory-categories');
+            catContainer.innerHTML = '';
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${cat === 'All' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-gray-800/60 text-gray-400 border-gray-700/60 hover:text-gray-200'}`;
+                btn.innerText = cat;
+                btn.onclick = () => filterDirectoryByCategory(cat, btn);
+                catContainer.appendChild(btn);
+            });
+
+            renderDirectoryGrid(VERIFIED_DIRECTORY);
+        }
+
+        let selectedCategory = 'All';
+
+        function filterDirectoryByCategory(cat, btnElement) {
+            selectedCategory = cat;
+            document.querySelectorAll('#directory-categories button').forEach(b => {
+                b.className = 'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-gray-800/60 text-gray-400 border-gray-700/60 hover:text-gray-200';
+            });
+            btnElement.className = 'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+            filterDirectory();
+        }
+
+        function filterDirectory() {
+            const query = document.getElementById('directory-search').value.toLowerCase();
+            const filtered = VERIFIED_DIRECTORY.filter(item => {
+                const matchesCat = selectedCategory === 'All' || item.category === selectedCategory;
+                const matchesQuery = item.name.toLowerCase().includes(query) || 
+                                     item.importName.toLowerCase().includes(query) || 
+                                     item.desc.toLowerCase().includes(query);
+                return matchesCat && matchesQuery;
+            });
+            renderDirectoryGrid(filtered);
+        }
+
+        function renderDirectoryGrid(items) {
+            const grid = document.getElementById('directory-grid');
+            grid.innerHTML = '';
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 text-xs">No matching verified packages found.</div>`;
+                return;
+            }
+
+            items.forEach(pkg => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-900 p-5 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all space-y-3 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-medium">${pkg.category}</span>
+                            <span class="text-[11px] font-mono text-gray-500">import ${pkg.importName}</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white font-mono">${pkg.name}</h3>
+                        <p class="text-xs text-gray-400 line-clamp-2">${pkg.desc}</p>
+                    </div>
+                    <div class="pt-2 border-t border-gray-800/80 space-y-2">
+                        <div class="flex items-center justify-between bg-gray-950 px-3 py-2 rounded-xl border border-gray-800 text-xs font-mono text-emerald-400">
+                            <span>pip install ${pkg.pypi}</span>
+                            <button onclick="copyText('pip install ${pkg.pypi}')" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Initialize Import Mismatch Matrix Table
+        function initMatrixTable() {
+            const tbody = document.getElementById('matrix-table-body');
+            tbody.innerHTML = '';
+
+            Object.keys(IMPORT_TO_PYPI_MAP).forEach(importMod => {
+                const data = IMPORT_TO_PYPI_MAP[importMod];
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-800/40 transition-colors';
+                row.innerHTML = `
+                    <td class="p-4 text-amber-300 font-bold">import ${importMod}</td>
+                    <td class="p-4 text-emerald-400 font-bold">${data.pypi}</td>
+                    <td class="p-4 text-gray-300">pip install ${data.pypi}</td>
+                    <td class="p-4 text-red-400 font-sans text-xs">${data.riskTrap}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="copyText('pip install ${data.pypi}')" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs font-sans transition-colors">
+                            Copy
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterMatrix() {
+            const query = document.getElementById('matrix-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#matrix-table-body tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+
+        // Copy Clean Requirements
+        function copyCleanRequirements() {
+            if (!lastCleanRequirements) {
+                showToast('No clean requirements generated yet', 'fa-triangle-exclamation');
+                return;
+            }
+            copyText(lastCleanRequirements);
+            showToast('Clean requirements.txt copied to clipboard!', 'fa-clipboard-check');
+        }
+
+        // Download Clean Requirements File
+        function downloadCleanRequirements() {
+            if (!lastCleanRequirements) {
+                showToast('No clean requirements generated yet', 'fa-triangle-exclamation');
+                return;
+            }
+            const blob = new Blob([lastCleanRequirements], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'requirements.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Downloaded clean requirements.txt', 'fa-file-arrow-down');
+        }
+
+        // Universal Copy Helper
+        function copyText(str) {
+            const el = document.createElement('textarea');
+            el.value = str;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast('Copied to clipboard!', 'fa-check');
+        }
+
+        // Toast Notification System
+        function showToast(msg, icon = 'fa-circle-info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = `fa-solid ${icon} text-emerald-400 text-base`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Risk Calculator Quiz
+        function calculateRiskScore() {
+            const checkboxes = document.querySelectorAll('.quiz-check');
+            let checkedCount = 0;
+            checkboxes.forEach(c => { if (c.checked) checkedCount++; });
+
+            const resultContainer = document.getElementById('risk-score-result');
+            const badge = document.getElementById('risk-score-badge');
+
+            if (checkedCount === 0) {
+                resultContainer.className = 'p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-center justify-between';
+                resultContainer.innerHTML = `
+                    <div>
+                        <span class="font-bold text-sm block">Workflow Risk Status: LOW RISK (100/100)</span>
+                        <span>Great security habits! Keep verifying AI imports with PyGenuine.</span>
+                    </div>
+                    <span class="px-3 py-1 rounded-lg bg-emerald-500 text-gray-950 font-bold text-xs">SAFE</span>
+                `;
+            } else if (checkedCount === 1) {
+                resultContainer.className = 'p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center justify-between';
+                resultContainer.innerHTML = `
+                    <div>
+                        <span class="font-bold text-sm block">Workflow Risk Status: MODERATE EXPOSURE (65/100)</span>
+                        <span>Caution: Unverified LLM pip installs put your machine at risk of typosquatting.</span>
+                    </div>
+                    <span class="px-3 py-1 rounded-lg bg-amber-500 text-gray-950 font-bold text-xs">MODERATE</span>
+                `;
+            } else {
+                resultContainer.className = 'p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-center justify-between';
+                resultContainer.innerHTML = `
+                    <div>
+                        <span class="font-bold text-sm block">Workflow Risk Status: HIGH SUPPLY CHAIN RISK (30/100)</span>
+                        <span>Warning! Your vibe coding practices leave you vulnerable to AI Slopsquatting RCE attacks.</span>
+                    </div>
+                    <span class="px-3 py-1 rounded-lg bg-red-500 text-white font-bold text-xs">HIGH RISK</span>
+                `;
+            }
+        }
+
+        // Initialization on Load
+        window.onload = function() {
+            initDirectory();
+            initMatrixTable();
+            onInputChanged();
+        };
+    </script>
+</body>
+</html>

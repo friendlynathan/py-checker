@@ -1,0 +1,25 @@
+# OS metadata
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Node (if tooling added later)
+node_modules/
+
+# Logs & local artifacts
+*.log
+.cache/
+dist/
+build/
